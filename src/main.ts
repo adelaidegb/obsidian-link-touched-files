@@ -48,6 +48,11 @@ export default class LinkTouchedFiles extends Plugin {
 
         const dailyNotesFolder = getDailyNoteSettings().folder;
 
+        /*
+         * This check is primarily to ensure we don't detect changes in the current daily note.
+         * It uses the folder setting to reduce how intensive of a check it is; as the daily note
+         * interface library requires a call to index all note files before finding a single note.
+         */
         if (dailyNotesFolder && file.path.startsWith(dailyNotesFolder)) {
             return;
         }
@@ -70,7 +75,7 @@ export default class LinkTouchedFiles extends Plugin {
      */
     private async resolveAndUpdate() {
         await this.app.fileManager.processFrontMatter(await this.getOrCreateDailyNote(), fm => {
-            const links: string[] = fm[this.settings.frontmatterField];
+            const links: string[] = (fm[this.settings.frontmatterField] ??= []);
 
             for (const link of links) {
                 this.pending.delete(link.substring(2, link.indexOf('|')));
